@@ -111,6 +111,9 @@
     .btn-end { background: #ef4444; color: #fff; }
     .btn-end:hover { background: #f87171; transform: translateY(-1px); }
 
+    .btn-frenzy { background: linear-gradient(135deg, #ff4500, #ff6b35); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+    .btn-frenzy:hover { background: linear-gradient(135deg, #ff5500, #ff7b45); transform: translateY(-1px); }
+
     .btn:active { transform: scale(0.96); }
 
     .hint {
@@ -283,7 +286,7 @@
 
   <div class="game-wrapper">
     <div class="header">
-      <h1>🐍 Snake</h1>
+      <h1>🐍 Snake <span id="modeBadge" style="display:none;font-size:13px;background:#ff4500;color:#fff;padding:2px 8px;border-radius:10px;vertical-align:middle;-webkit-text-fill-color:#fff">狂暴</span></h1>
       <div class="score-panel">
         <div class="score-item">
           <div class="score-label">Score</div>
@@ -404,41 +407,63 @@
   <div class="overlay" id="overlayWelcome">
     <div class="overlay-box">
       <h2>🐍 贪吃蛇</h2>
-      <div class="sub" style="margin-bottom:4px">经典街机游戏</div>
+      <div class="sub" style="margin-bottom:4px" id="welcomeSubtitle">经典街机游戏</div>
+      <div style="display:flex;gap:16px;justify-content:center;margin:8px 0">
+        <div style="text-align:center;background:#0f3460;border-radius:8px;padding:8px 16px;min-width:100px">
+          <div style="font-size:10px;color:#4ecca3;letter-spacing:1px;margin-bottom:2px">🏆 经典最高</div>
+          <div style="font-size:20px;font-weight:700;color:#ffd700" id="welcomeClassicHs">0</div>
+        </div>
+        <div style="text-align:center;background:#3b1a0a;border-radius:8px;padding:8px 16px;min-width:100px">
+          <div style="font-size:10px;color:#ff6b35;letter-spacing:1px;margin-bottom:2px">🔥 狂暴最高</div>
+          <div style="font-size:20px;font-weight:700;color:#ff6b35" id="welcomeFrenzyHs">0</div>
+        </div>
+      </div>
       <div class="death-stats">
-        <span class="stat-label">最高纪录</span><span class="stat-value" id="welcomeHighScore">0</span>
         <span class="stat-label">当前皮肤</span><span class="stat-value" id="welcomeSkinName">经典绿</span>
       </div>
-      <div class="sub" style="margin-top:12px;margin-bottom:8px">
+      <div class="sub" style="margin-top:8px;margin-bottom:4px">
         <kbd>↑↓←→</kbd> <kbd>WASD</kbd> 控制方向 &nbsp; <kbd>Space</kbd> 暂停
       </div>
       <div class="btn-row">
         <button class="btn btn-settings" onclick="openSettings()">⚙ 皮肤</button>
         <button class="btn btn-settings" onclick="openRules()">📖 规则</button>
-        <button class="btn btn-start" id="btnWelcomeStart">▶ 开始游戏</button>
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn btn-start" id="btnClassicStart">▶ 经典模式</button>
+        <button class="btn btn-frenzy" id="btnFrenzyStart">🔥 狂暴模式</button>
       </div>
     </div>
   </div>
 
   <!-- Rules overlay -->
   <div class="overlay hidden" id="overlayRules">
-    <div class="overlay-box" style="max-width:400px;text-align:left">
+    <div class="overlay-box" style="max-width:440px;text-align:left">
       <h2 style="text-align:center">📖 游戏规则</h2>
-      <div style="font-size:13px;line-height:1.75;color:#ccc;max-height:340px;overflow-y:auto;padding-right:4px">
-        <p>🎯 <b>目标：</b>控制蛇吃掉食物，尽可能获得高分。</p>
-        <p style="margin-bottom:6px;border-bottom:1px solid #1a3a5c;padding-bottom:6px">━━ <b>食物类型</b> ━━</p>
-        <p>🟢 <b>绿色食物</b>　+10 分，每 50 分游戏加速一次。</p>
-        <p>⭐ <b>金色星形</b>　+30 分，随机出现，限时存在。</p>
-        <p>❤️ <b>粉色爱心</b>　160 分首次出现，之后每 200 分生成。吃到 +1 条命，死亡自动复活并<b>保留长度</b>。</p>
-        <p>❄️ <b>蓝色减速豆</b>　350 分首次出现，之后每 150 分生成。吃到<b>减速 4 秒</b>，不加分。</p>
-        <p style="margin-bottom:6px;border-bottom:1px solid #1a3a5c;padding-bottom:6px">━━ <b>操作机制</b> ━━</p>
-        <p>⚡ <b>长按加速</b>　按住方向键不放即可加速，松开恢复。400 分后加速关闭。</p>
-        <p>💀 <b>死亡复活</b>　撞墙或撞自己即死亡。有剩余生命自动复活；无生命时弹出选项，可手动复活或结束。手动复活<b>保留长度</b>。</p>
-        <p>⏸ <b>暂停</b>　Space 键或点击暂停按钮，暂停时按钮保持可见可操作。</p>
-        <p style="margin-bottom:6px;border-bottom:1px solid #1a3a5c;padding-bottom:6px">━━ <b>其他</b> ━━</p>
-        <p>🎨 <b>6 种皮肤</b>　设置中可切换蛇的配色。</p>
-        <p>🎵 <b>BGM + 音效</b>　4 档音量可调，点击 🔊 按钮展开音量条。音效不受音量影响。</p>
-        <p>🔄 <b>重新开始</b>　游戏中点击会二次确认，防止误触。</p>
+      <div style="font-size:13px;line-height:1.75;color:#ccc;max-height:380px;overflow-y:auto;padding-right:6px">
+        <p>🎯 <b>目标：</b>控制蛇吃掉食物，尽可能获得高分。撞墙或撞自己即死亡。</p>
+
+        <p style="margin:10px 0 4px;color:#4ecca3;font-weight:700;font-size:14px">━━ 🟢 经典模式 ━━</p>
+        <p style="margin:2px 0">🟢 <b>绿食</b> 1 个 · +10 分 · 每 50 分提速 <span style="color:#888">(120ms→-5ms)</span></p>
+        <p style="margin:2px 0">⭐ <b>金星</b> 30% 概率 · +30 分 · 限时存在</p>
+        <p style="margin:2px 0">❤️ <b>爱心</b> <span style="color:#888">160 分</span>首出 · 每 <span style="color:#888">200</span> 分 · 场上 1 个 · +1 命</p>
+        <p style="margin:2px 0">❄️ <b>减速豆</b> <span style="color:#888">350 分</span>首出 · 每 <span style="color:#888">150</span> 分 · 场上 1 个 · 减速 4s</p>
+        <p style="margin:2px 0">⚡ 长按方向键加速 · <span style="color:#888">400 分后关闭</span></p>
+        <p style="margin:2px 0">🎵 BGM <span style="color:#888">250ms/拍</span></p>
+
+        <p style="margin:12px 0 4px;color:#ff6b35;font-weight:700;font-size:14px">━━ 🔥 狂暴模式 （独立计分，不互通）━━</p>
+        <p style="margin:2px 0">🚀 初始速度 <span style="color:#ff6b35;font-weight:700">65ms</span> · 提速 <span style="color:#ff6b35">-3ms/50分</span></p>
+        <p style="margin:2px 0">🟢 绿食 <span style="color:#ff6b35;font-weight:700">5×</span> · 场上 <span style="color:#ff6b35">最多 25 个</span> · 吃 1 生 5 · 满 25 后吃 1 生 1</p>
+        <p style="margin:2px 0">⭐ 金星概率 <span style="color:#ff6b35;font-weight:700">90%</span>（经典 30%）</p>
+        <p style="margin:2px 0">❤️ 爱心 <span style="color:#ff6b35;font-weight:700">32 分首出</span>（×5） · 每 <span style="color:#ff6b35">40 分</span> · 场上 <span style="color:#ff6b35">最多 3 个</span></p>
+        <p style="margin:2px 0">❄️ 减速豆 <span style="color:#ff6b35;font-weight:700">70 分首出</span>（×5） · 每 <span style="color:#ff6b35">30 分</span> · 场上 <span style="color:#ff6b35">最多 3 个</span></p>
+        <p style="margin:2px 0">🎵 BGM <span style="color:#ff6b35;font-weight:700">75ms/拍</span>（3.3×快）</p>
+        <p style="margin:2px 0;color:#ff6b35">⚠ 400 分后长按加速关闭（与经典相同）</p>
+
+        <p style="margin:12px 0 4px;color:#60a5fa;font-weight:700;font-size:14px">━━ 通用机制 ━━</p>
+        <p style="margin:2px 0">💀 死亡后：有命 → 自动复活（<b>保留长度</b>）；无命 → 弹出面板手动选择</p>
+        <p style="margin:2px 0">⏸ Space 暂停 · 按钮保持可用 · ⏱ 右上角计时</p>
+        <p style="margin:2px 0">🎨 6 种皮肤 · 🎵 4 档音量 · 🔄 重启二次确认</p>
+        <p style="margin:2px 0">🏆 经典/狂暴纪录独立存储 · 首页双卡片展示</p>
       </div>
       <div class="btn-row">
         <button class="btn btn-start" onclick="closeRules()">✓ 知道了</button>
@@ -520,8 +545,7 @@
         glow: '#a5f3fc',
       },
     ];
-    let currentSkin = SKINS[0];
-    try { const saved = localStorage.getItem('snake_skin'); if (saved) { const s = SKINS.find(k => k.id === saved); if (s) currentSkin = s; } } catch(e) {}
+    let currentSkin = SKINS[1]; // classic default: 霓虹蓝
 
     // ---- DOM ----
     const scoreEl = document.getElementById('score');
@@ -550,27 +574,33 @@
     const deathLivesEl = document.getElementById('deathLives');
     const deathLengthEl = document.getElementById('deathLength');
     const overlayWelcome = document.getElementById('overlayWelcome');
-    const welcomeHighScoreEl = document.getElementById('welcomeHighScore');
+    const welcomeClassicHs = document.getElementById('welcomeClassicHs');
+    const welcomeFrenzyHs = document.getElementById('welcomeFrenzyHs');
+    const welcomeSubtitle = document.getElementById('welcomeSubtitle');
     const welcomeSkinNameEl = document.getElementById('welcomeSkinName');
+    const modeBadge = document.getElementById('modeBadge');
     const finalScoreEl = document.getElementById('finalScore');
     const finalRevivesEl = document.getElementById('finalRevives');
     const finalHighScoreEl = document.getElementById('finalHighScore');
 
     // ---- state ----
     let snake = [];
-    let food = null;
+    let foods = [];
     let specialFood = null;
     let specialFoodTimer = 0;
-    let heartFood = null;
+    let heartFoods = [];
     let dir = { x: 1, y: 0 };
     let nextDir = { x: 1, y: 0 };
     let score = 0;
+    let gameMode = 'classic'; // 'classic' | 'frenzy'
     let highScore = 0;
     let highScoreRevives = 0;
+    let frenzyHighScore = 0;
+    let frenzyHighScoreRevives = 0;
     let revives = 0;
     let lives = 0;
     let nextHeartScore = 160;
-    let slowBean = null;
+    let slowBeans = [];
     let nextSlowBeanScore = 350;
     let slowEndTime = 0;
     let boostActive = false;
@@ -658,13 +688,14 @@
         bgmTimer = setTimeout(scheduleBgmNote, 200);
         return;
       }
+      const slot = getBgmSlotMs();
       const n = BGM_SEQ[bgmNoteIndex % BGM_SEQ.length];
       if (n.f > 0) {
-        const dur = n.s * SLOT_MS * 0.85 / 1000; // slight staccato gap
+        const dur = n.s * slot * 0.85 / 1000;
         playNote(n.f, dur, 'triangle', 0.05, 0);
       }
       bgmNoteIndex++;
-      bgmTimer = setTimeout(scheduleBgmNote, n.s * SLOT_MS);
+      bgmTimer = setTimeout(scheduleBgmNote, n.s * slot);
     }
 
     function startBgm() {
@@ -728,12 +759,43 @@
         highScore = saved.score;
         highScoreRevives = saved.revives || 0;
       }
+      const fs = JSON.parse(localStorage.getItem('snake_highscore_frenzy') || 'null');
+      if (fs && typeof fs.score === 'number') {
+        frenzyHighScore = fs.score;
+        frenzyHighScoreRevives = fs.revives || 0;
+      }
     } catch(e) {}
+    // ---- mode-dependent getters ----
+    function getBaseSpeed()       { return gameMode === 'frenzy' ? 65 : 120; }
+    function getHeartFirst()      { return gameMode === 'frenzy' ? 32 : 160; }
+    function getHeartInterval()   { return gameMode === 'frenzy' ? 40 : 200; }
+    function getSlowFirst()       { return gameMode === 'frenzy' ? 70 : 350; }
+    function getSlowInterval()    { return gameMode === 'frenzy' ? 30 : 150; }
+    function getSpecialChance()   { return gameMode === 'frenzy' ? 0.9 : 0.3; }
+    function getBgmSlotMs()       { return gameMode === 'frenzy' ? 75 : 250; }
+    function getScoreStep()       { return gameMode === 'frenzy' ? 3 : 5; }
+    function getMaxHeartFoods()   { return gameMode === 'frenzy' ? 3 : 1; }
+    function getMaxSlowBeans()    { return gameMode === 'frenzy' ? 3 : 1; }
+    function getCurrentHighScore(){ return gameMode === 'frenzy' ? frenzyHighScore : highScore; }
+    function getCurrentHsRevives(){ return gameMode === 'frenzy' ? frenzyHighScoreRevives : highScoreRevives; }
+
     function updateHighScoreDisplay() {
-      highScoreEl.textContent = highScore;
-      highScoreNoteEl.textContent = highScoreRevives > 0 ? '复活' + highScoreRevives + '次' : '';
+      const hs = getCurrentHighScore();
+      const rv = getCurrentHsRevives();
+      highScoreEl.textContent = hs;
+      highScoreNoteEl.textContent = rv > 0 ? '复活' + rv + '次' : '';
     }
     updateHighScoreDisplay();
+
+    function showWelcomeHighScore() {
+      welcomeSubtitle.textContent = gameMode === 'frenzy'
+        ? '🔥 狂暴模式 — 5倍生成 · 极速 · 更快节奏'
+        : '经典街机游戏';
+      const chs = highScore + (highScoreRevives > 0 ? ' (' + highScoreRevives + '复)' : '');
+      const fhs = frenzyHighScore + (frenzyHighScoreRevives > 0 ? ' (' + frenzyHighScoreRevives + '复)' : '');
+      welcomeClassicHs.textContent = chs;
+      welcomeFrenzyHs.textContent = fhs;
+    }
 
     function initGame(fullReset = true) {
       const cx = Math.floor(COLS / 2);
@@ -749,19 +811,21 @@
         score = 0;
         revives = 0;
         lives = 0;
-        speed = 120;
-        nextHeartScore = 160;
-        nextSlowBeanScore = 350;
+        speed = getBaseSpeed();
+        nextHeartScore = getHeartFirst();
+        nextSlowBeanScore = getSlowFirst();
       }
-      heartFood = null;
-      slowBean = null;
+      heartFoods = [];
+      slowBeans = [];
       slowEndTime = 0;
       boostActive = false;
       flashAlpha = 0;
       slowFlashAlpha = 0;
       gameOver = false;
       paused = false;
+      modeBadge.style.display = gameMode === 'frenzy' ? 'inline' : 'none';
       particles = [];
+      foods = [];
       specialFood = null;
       specialFoodTimer = 0;
       scoreEl.textContent = score;
@@ -782,8 +846,9 @@
 
     function spawnFood() {
       const occupied = new Set(snake.map(p => `${p.x},${p.y}`));
-      if (heartFood) occupied.add(`${heartFood.x},${heartFood.y}`);
-      if (slowBean) occupied.add(`${slowBean.x},${slowBean.y}`);
+      heartFoods.forEach(h => occupied.add(`${h.x},${h.y}`));
+      slowBeans.forEach(s => occupied.add(`${s.x},${s.y}`));
+      foods.forEach(f => occupied.add(`${f.x},${f.y}`));
       const free = [];
       for (let x = 0; x < COLS; x++) {
         for (let y = 0; y < ROWS; y++) {
@@ -791,15 +856,15 @@
         }
       }
       if (free.length === 0) return;
-      food = free[Math.floor(Math.random() * free.length)];
+      foods.push(free[Math.floor(Math.random() * free.length)]);
     }
 
     function spawnSpecialFood() {
       if (specialFood) return;
       const occupied = new Set(snake.map(p => `${p.x},${p.y}`));
-      if (food) occupied.add(`${food.x},${food.y}`);
-      if (heartFood) occupied.add(`${heartFood.x},${heartFood.y}`);
-      if (slowBean) occupied.add(`${slowBean.x},${slowBean.y}`);
+      foods.forEach(f => occupied.add(`${f.x},${f.y}`));
+      heartFoods.forEach(h => occupied.add(`${h.x},${h.y}`));
+      slowBeans.forEach(s => occupied.add(`${s.x},${s.y}`));
       const free = [];
       for (let x = 0; x < COLS; x++) {
         for (let y = 0; y < ROWS; y++) {
@@ -812,11 +877,12 @@
     }
 
     function spawnHeartFood() {
-      if (heartFood) return;
+      if (heartFoods.length >= getMaxHeartFoods()) return;
       const occupied = new Set(snake.map(p => `${p.x},${p.y}`));
-      if (food) occupied.add(`${food.x},${food.y}`);
+      foods.forEach(f => occupied.add(`${f.x},${f.y}`));
+      heartFoods.forEach(h => occupied.add(`${h.x},${h.y}`));
       if (specialFood) occupied.add(`${specialFood.x},${specialFood.y}`);
-      if (slowBean) occupied.add(`${slowBean.x},${slowBean.y}`);
+      slowBeans.forEach(s => occupied.add(`${s.x},${s.y}`));
       const free = [];
       for (let x = 0; x < COLS; x++) {
         for (let y = 0; y < ROWS; y++) {
@@ -824,15 +890,16 @@
         }
       }
       if (free.length === 0) return;
-      heartFood = free[Math.floor(Math.random() * free.length)];
+      heartFoods.push(free[Math.floor(Math.random() * free.length)]);
     }
 
     function spawnSlowBean() {
-      if (slowBean) return;
+      if (slowBeans.length >= getMaxSlowBeans()) return;
       const occupied = new Set(snake.map(p => `${p.x},${p.y}`));
-      if (food) occupied.add(`${food.x},${food.y}`);
+      foods.forEach(f => occupied.add(`${f.x},${f.y}`));
       if (specialFood) occupied.add(`${specialFood.x},${specialFood.y}`);
-      if (heartFood) occupied.add(`${heartFood.x},${heartFood.y}`);
+      heartFoods.forEach(h => occupied.add(`${h.x},${h.y}`));
+      slowBeans.forEach(s => occupied.add(`${s.x},${s.y}`));
       const free = [];
       for (let x = 0; x < COLS; x++) {
         for (let y = 0; y < ROWS; y++) {
@@ -840,7 +907,7 @@
         }
       }
       if (free.length === 0) return;
-      slowBean = free[Math.floor(Math.random() * free.length)];
+      slowBeans.push(free[Math.floor(Math.random() * free.length)]);
     }
 
     function spawnSlowParticles(x, y) {
@@ -904,20 +971,31 @@
       const newHead = { x: nx, y: ny };
       snake.unshift(newHead);
 
-      if (food && newHead.x === food.x && newHead.y === food.y) {
+      // check green foods
+      const eatenIdx = foods.findIndex(f => f.x === newHead.x && f.y === newHead.y);
+      if (eatenIdx >= 0) {
+        foods.splice(eatenIdx, 1);
         score += 10;
         sfxEat();
-        spawnFood();
+        if (gameMode === 'frenzy' && foods.length >= 25) {
+          spawnFood(); // cap at 25, eat one spawn one
+        } else {
+          spawnFood();
+          if (gameMode === 'frenzy') {
+            for (let k = 0; k < 4; k++) spawnFood();
+          }
+        }
         spawnParticles(newHead.x * CELL + CELL/2, newHead.y * CELL + CELL/2, '#4ecca3');
 
-        if (score % 50 === 0 && speed > 50) {
-          speed -= 5;
+        const minSpeed = gameMode === 'frenzy' ? 45 : 50;
+        if (score % 50 === 0 && speed > minSpeed) {
+          speed -= getScoreStep();
           clearInterval(ticker);
           const interval = slowEndTime > Date.now() ? speed + 70 : (boostActive ? Math.max(30, speed - 45) : speed);
           ticker = setInterval(tick, interval);
         }
 
-        if (Math.random() < 0.3 && !specialFood) {
+        if (Math.random() < getSpecialChance() && !specialFood) {
           spawnSpecialFood();
         }
       } else if (specialFood && newHead.x === specialFood.x && newHead.y === specialFood.y) {
@@ -930,37 +1008,43 @@
         snake.pop();
       }
 
-      // check heart food
-      if (heartFood && newHead.x === heartFood.x && newHead.y === heartFood.y) {
+      // check heart foods
+      (() => {
+        const hi = heartFoods.findIndex(h => h.x === newHead.x && h.y === newHead.y);
+        if (hi < 0) return;
+        const h = heartFoods[hi];
+        heartFoods.splice(hi, 1);
         lives++;
         sfxHeart();
         livesCountEl.innerHTML = '❤ ' + lives;
-        spawnHeartParticles(heartFood.x * CELL + CELL/2, heartFood.y * CELL + CELL/2);
+        spawnHeartParticles(h.x * CELL + CELL/2, h.y * CELL + CELL/2);
         flashAlpha = 1;
-        heartFood = null;
-      }
+      })();
 
-      // check slow bean
-      if (slowBean && newHead.x === slowBean.x && newHead.y === slowBean.y) {
+      // check slow beans
+      (() => {
+        const si = slowBeans.findIndex(s => s.x === newHead.x && s.y === newHead.y);
+        if (si < 0) return;
+        const s = slowBeans[si];
+        slowBeans.splice(si, 1);
         sfxSlow();
-        spawnSlowParticles(slowBean.x * CELL + CELL/2, slowBean.y * CELL + CELL/2);
+        spawnSlowParticles(s.x * CELL + CELL/2, s.y * CELL + CELL/2);
         slowFlashAlpha = 0.6;
         slowEndTime = Date.now() + 4000;
         clearInterval(ticker);
         ticker = setInterval(tick, speed + 70);
-        slowBean = null;
-      }
+      })();
 
       // spawn heart at score milestones
-      if (!heartFood && score >= nextHeartScore) {
+      if (heartFoods.length < getMaxHeartFoods() && score >= nextHeartScore) {
         spawnHeartFood();
-        nextHeartScore += 200;
+        nextHeartScore += getHeartInterval();
       }
 
       // spawn slow bean at milestones
-      if (!slowBean && score >= nextSlowBeanScore) {
+      if (slowBeans.length < getMaxSlowBeans() && score >= nextSlowBeanScore) {
         spawnSlowBean();
-        nextSlowBeanScore += 150;
+        nextSlowBeanScore += getSlowInterval();
       }
 
       if (specialFood) {
@@ -999,8 +1083,8 @@
         lives--;
         livesCountEl.innerHTML = '❤ ' + lives;
         flashAlpha = 0.8;
-        // reposition snake at center, preserve current length
-        const cx = Math.floor(COLS / 2);
+        const isFrenzy = gameMode === 'frenzy';
+        const cx = isFrenzy ? 3 : Math.floor(COLS / 2);
         const cy = Math.floor(ROWS / 2);
         const len = snake.length;
         snake = [];
@@ -1046,8 +1130,9 @@
       resumeTimer();
       startBgm();
       overlayDeath.classList.add('hidden');
-      // reposition snake at center, preserve current length
-      const cx = Math.floor(COLS / 2);
+      // reposition snake; frenzy: left wall heading right
+      const isFrenzy = gameMode === 'frenzy';
+      const cx = isFrenzy ? 3 : Math.floor(COLS / 2);
       const cy = Math.floor(ROWS / 2);
       const len = snake.length;
       snake = [];
@@ -1068,17 +1153,25 @@
       stopTimer();
       overlayDeath.classList.add('hidden');
 
-      const isNewRecord = score > highScore;
+      const isNewRecord = score > getCurrentHighScore();
       if (isNewRecord) {
-        highScore = score;
-        highScoreRevives = revives;
+        if (gameMode === 'frenzy') {
+          frenzyHighScore = score;
+          frenzyHighScoreRevives = revives;
+          try { localStorage.setItem('snake_highscore_frenzy', JSON.stringify({ score: frenzyHighScore, revives: frenzyHighScoreRevives })); } catch(e) {}
+        } else {
+          highScore = score;
+          highScoreRevives = revives;
+          try { localStorage.setItem('snake_highscore', JSON.stringify({ score: highScore, revives: highScoreRevives })); } catch(e) {}
+        }
         updateHighScoreDisplay();
-        try { localStorage.setItem('snake_highscore', JSON.stringify({ score: highScore, revives: highScoreRevives })); } catch(e) {}
         showCelebrate();
       } else {
+        const hs = getCurrentHighScore();
+        const hr = getCurrentHsRevives();
         finalScoreEl.textContent = score;
         finalRevivesEl.textContent = revives;
-        finalHighScoreEl.textContent = highScore + (highScoreRevives > 0 ? ' (复活' + highScoreRevives + '次)' : '');
+        finalHighScoreEl.textContent = hs + (hr > 0 ? ' (复活' + hr + '次)' : '');
         overlayFinal.classList.remove('hidden');
       }
     }
@@ -1115,11 +1208,11 @@
         ctx.stroke();
       }
 
-      // food
-      if (food) {
+      // green foods
+      foods.forEach(food => {
         const fx = food.x * CELL + CELL/2;
         const fy = food.y * CELL + CELL/2;
-        const pulse = 1 + Math.sin(Date.now() / 200) * 0.15;
+        const pulse = 1 + Math.sin(Date.now() / 200 + food.x + food.y) * 0.15;
         ctx.save();
         ctx.shadowColor = '#4ecca3';
         ctx.shadowBlur = 10;
@@ -1128,7 +1221,7 @@
         ctx.arc(fx, fy, CELL/2.5 * pulse, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
-      }
+      });
 
       // special food
       if (specialFood) {
@@ -1148,10 +1241,10 @@
         ctx.restore();
       }
 
-      // slow bean
-      if (slowBean) {
-        const bx = slowBean.x * CELL + CELL/2;
-        const by = slowBean.y * CELL + CELL/2;
+      // slow beans
+      slowBeans.forEach(s => {
+        const bx = s.x * CELL + CELL/2;
+        const by = s.y * CELL + CELL/2;
         ctx.save();
         ctx.shadowColor = '#60a5fa';
         ctx.shadowBlur = 12;
@@ -1159,26 +1252,25 @@
         ctx.beginPath();
         ctx.arc(bx, by, CELL/3, 0, Math.PI * 2);
         ctx.fill();
-        // snowflake icon
         ctx.fillStyle = '#bfdbfe';
         ctx.font = `${CELL/2}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('❄', bx, by);
         ctx.restore();
-      }
+      });
 
-      // heart food
-      if (heartFood) {
-        const hx = heartFood.x * CELL + CELL/2;
-        const hy = heartFood.y * CELL + CELL/2;
-        const beat = 1 + Math.sin(Date.now() / 300) * 0.12;
+      // heart foods
+      heartFoods.forEach(h => {
+        const hx = h.x * CELL + CELL/2;
+        const hy = h.y * CELL + CELL/2;
+        const beat = 1 + Math.sin(Date.now() / 300 + h.x) * 0.12;
         ctx.save();
         ctx.shadowColor = '#ff6b8a';
         ctx.shadowBlur = 16;
         drawHeart(ctx, hx, hy, CELL/2.5 * beat);
         ctx.restore();
-      }
+      });
 
       // revive / heart flash
       if (flashAlpha > 0) {
@@ -1328,7 +1420,6 @@
         div.appendChild(document.createTextNode(skin.name));
         div.addEventListener('click', () => {
           currentSkin = skin;
-          try { localStorage.setItem('snake_skin', skin.id); } catch(e) {}
           buildSkinGrid();
         });
         grid.appendChild(div);
@@ -1343,7 +1434,7 @@
 
     function closeSettings() {
       overlaySettings.classList.add('hidden');
-      welcomeHighScoreEl.textContent = highScore + (highScoreRevives > 0 ? ' (复活' + highScoreRevives + '次)' : '');
+      showWelcomeHighScore();
       welcomeSkinNameEl.textContent = currentSkin.name;
     }
 
@@ -1365,26 +1456,28 @@
       paused = false;
       overlayFinal.classList.add('hidden');
       overlayDeath.classList.add('hidden');
-      // show welcome
-      welcomeHighScoreEl.textContent = highScore + (highScoreRevives > 0 ? ' (复活' + highScoreRevives + '次)' : '');
+      // show welcome — reset to classic preview
+      gameMode = 'classic';
+      modeBadge.style.display = 'none';
+      showWelcomeHighScore();
       welcomeSkinNameEl.textContent = currentSkin.name;
       overlayWelcome.classList.remove('hidden');
       // reset static preview
       const cx = Math.floor(COLS / 2);
       const cy = Math.floor(ROWS / 2);
       snake = [{ x: cx, y: cy }, { x: cx - 1, y: cy }, { x: cx - 2, y: cy }];
-      food = null;
+      foods = [];
       specialFood = null;
-      heartFood = null;
-      slowBean = null;
+      heartFoods = [];
+      slowBeans = [];
       particles = [];
       spawnFood();
       score = 0;
       revives = 0;
       lives = 0;
-      speed = 120;
-      nextHeartScore = 160;
-      nextSlowBeanScore = 350;
+      speed = getBaseSpeed();
+      nextHeartScore = getHeartFirst();
+      nextSlowBeanScore = getSlowFirst();
       scoreEl.textContent = score;
       livesCountEl.innerHTML = '❤ 0';
       reviveCountEl.textContent = '0';
@@ -1589,14 +1682,19 @@
       celebSparkles = [];
       overlayCelebrate.classList.add('hidden');
       // show final overlay after celebration
+      const hs = getCurrentHighScore();
+      const hr = getCurrentHsRevives();
       overlayFinal.classList.remove('hidden');
       finalScoreEl.textContent = score;
       finalRevivesEl.textContent = revives;
-      finalHighScoreEl.textContent = highScore + (highScoreRevives > 0 ? ' (复活' + highScoreRevives + '次)' : '');
+      finalHighScoreEl.textContent = hs + (hr > 0 ? ' (复活' + hr + '次)' : '');
     }
 
-    function startFirstGame() {
+    function startGame(mode) {
+      gameMode = mode;
+      currentSkin = mode === 'frenzy' ? SKINS[2] : SKINS[1]; // fire for frenzy, neon for classic
       overlayWelcome.classList.add('hidden');
+      updateHighScoreDisplay();
       initGame(true);
       startTimer();
       startBgm();
@@ -1604,14 +1702,16 @@
 
     // ---- button events ----
     document.getElementById('btnStart').addEventListener('click', handleRestart);
-    document.getElementById('btnWelcomeStart').addEventListener('click', startFirstGame);
+    document.getElementById('btnClassicStart').addEventListener('click', () => startGame('classic'));
+    document.getElementById('btnFrenzyStart').addEventListener('click', () => startGame('frenzy'));
     document.getElementById('btnPause').addEventListener('click', togglePause);
     document.getElementById('btnSettings').addEventListener('click', openSettings);
     document.getElementById('btnRevive').addEventListener('click', revive);
     document.getElementById('btnEnd').addEventListener('click', endGame);
 
     // ---- startup: show welcome, render static preview ----
-    welcomeHighScoreEl.textContent = highScore + (highScoreRevives > 0 ? ' (复活' + highScoreRevives + '次)' : '');
+    gameMode = 'classic';
+    showWelcomeHighScore();
     welcomeSkinNameEl.textContent = currentSkin.name;
     // init a static snake for visual preview behind the overlay
     const cx = Math.floor(COLS / 2);
@@ -1622,8 +1722,8 @@
       { x: cx - 2, y: cy },
     ];
     spawnFood();
-    heartFood = null;
-    slowBean = null;
+    heartFoods = [];
+    slowBeans = [];
     slowEndTime = 0;
     lives = 0;
     nextHeartScore = 160;
