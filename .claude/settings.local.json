@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(explorer \"c:\\\\Users\\\\苏曼珲\\\\Desktop\\\\Work\\\\智能体项目\\\\Desktop Snake\\\\index.html\")",
+      "Bash(start \"\" \"c:\\\\Users\\\\苏曼珲\\\\Desktop\\\\Work\\\\智能体项目\\\\Desktop Snake\\\\index.html\")"
+    ]
+  }
+}

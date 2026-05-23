@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>贪吃蛇 - Snake Game</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #1a1a2e;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .game-wrapper {
+      background: #16213e;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 2px #0f3460;
+      position: relative;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      color: #e2e2e2;
+      gap: 16px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      background: linear-gradient(135deg, #0f0, #7cfc00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      white-space: nowrap;
+    }
+
+    .score-panel {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .score-item {
+      text-align: center;
+    }
+
+    .score-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #888;
+      letter-spacing: 1px;
+    }
+
+    .score-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #4ecca3;
+    }
+
+    .high-score .score-value { color: #ffd700; }
+    .revives .score-value { color: #e879f9; }
+
+    canvas {
+      display: block;
+      border-radius: 8px;
+      background: #0a0a1a;
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+    }
+
+    .controls {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-start { background: #4ecca3; color: #1a1a2e; }
+    .btn-start:hover { background: #5ddfb5; transform: translateY(-1px); }
+
+    .btn-pause { background: #ffd700; color: #1a1a2e; }
+    .btn-pause:hover { background: #ffe033; transform: translateY(-1px); }
+
+    .btn-settings { background: #6c63ff; color: #fff; }
+    .btn-settings:hover { background: #7e76ff; transform: translateY(-1px); }
+
+    .btn-revive { background: #e879f9; color: #1a1a2e; }
+    .btn-revive:hover { background: #f0a0fc; transform: translateY(-1px); }
+
+    .btn-end { background: #ef4444; color: #fff; }
+    .btn-end:hover { background: #f87171; transform: translateY(-1px); }
+
+    .btn:active { transform: scale(0.96); }
+
+    .hint {
+      text-align: center;
+      color: #555;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    .hint kbd {
+      display: inline-block;
+      background: #0f3460;
+      color: #4ecca3;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin: 0 2px;
+    }
+
+    /* ---- overlay shared ---- */
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      pointer-events: none;
+      backdrop-filter: blur(2px);
+    }
+
+    .overlay.hidden { display: none; }
+
+    .overlay-box {
+      background: rgba(22,33,62,0.97);
+      border: 2px solid #0f3460;
+      border-radius: 16px;
+      padding: 32px 40px;
+      text-align: center;
+      color: #e2e2e2;
+      pointer-events: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      min-width: 300px;
+    }
+
+    .overlay-box h2 {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    .overlay-box .sub {
+      color: #888;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    .overlay-box .big-number {
+      font-size: 48px;
+      font-weight: 800;
+      color: #ffd700;
+      margin: 8px 0;
+    }
+
+    .overlay-box .btn-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    /* Death stats table */
+    .death-stats {
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 6px 24px;
+      justify-content: center;
+      margin: 12px 0;
+      font-size: 15px;
+    }
+    .death-stats .stat-label { color: #888; text-align: right; }
+    .death-stats .stat-value { color: #e2e2e2; text-align: left; font-weight: 600; }
+
+    /* ---- settings ---- */
+    .settings-section {
+      margin: 16px 0;
+      text-align: left;
+    }
+
+    .settings-section .section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #888;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .skin-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .skin-option {
+      padding: 12px 8px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      background: #0f3460;
+      color: #ccc;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .skin-option:hover { border-color: #4ecca3; }
+    .skin-option.active { border-color: #ffd700; background: #1a3a6a; }
+
+    .skin-preview {
+      width: 40px;
+      height: 24px;
+      border-radius: 6px;
+      margin: 0 auto 6px;
+      display: flex;
+      gap: 3px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .skin-preview span {
+      display: block;
+      width: 8px;
+      height: 8px;
+      border-radius: 3px;
+    }
+
+    /* volume bar */
+    .vol-bar {
+      display: inline-flex;
+      gap: 3px;
+      padding: 4px 6px;
+      background: #0f3460;
+      border-radius: 8px;
+      border: 1px solid #1a5276;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      vertical-align: middle;
+    }
+    .vol-bar.hidden { display: none; }
+    .vol-seg {
+      width: 22px;
+      height: 28px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #fff;
+      transition: all 0.12s;
+      text-align: center;
+      line-height: 1;
+    }
+    .vol-seg:hover { filter: brightness(1.3); }
+    .vol-seg.active { box-shadow: 0 0 6px rgba(255,255,255,0.4); }
+  </style>
+</head>
+<body>
+
+  <div class="game-wrapper">
+    <div class="header">
+      <h1>🐍 Snake</h1>
+      <div class="score-panel">
+        <div class="score-item">
+          <div class="score-label">Score</div>
+          <div class="score-value" id="score">0</div>
+        </div>
+        <div class="score-item high-score">
+          <div class="score-label">Best</div>
+          <div class="score-value" id="highScore">0</div>
+          <div class="score-label" id="highScoreNote" style="font-size:10px;margin-top:-2px"></div>
+        </div>
+        <div class="score-item" id="livesPanel">
+          <div class="score-label">Lives</div>
+          <div class="score-value" id="livesCount" style="color:#ff6b8a">❤ 0</div>
+        </div>
+        <div class="score-item revives" id="revivePanel" style="display:none">
+          <div class="score-label">Revives</div>
+          <div class="score-value" id="reviveCount">0</div>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="controls" style="position:relative">
+      <button class="btn btn-start" id="btnStart">▶ 开始 / 重新开始</button>
+      <button class="btn btn-pause" id="btnPause">⏸ 暂停</button>
+      <button class="btn btn-settings" id="btnSettings">⚙ 设置</button>
+      <button class="btn btn-pause" id="btnBgm" style="font-size:16px">🔊</button>
+      <div class="vol-bar hidden" id="volBar">
+        <div class="vol-seg" data-lvl="0" style="background:#555">🔇</div>
+        <div class="vol-seg" data-lvl="1">▎</div>
+        <div class="vol-seg" data-lvl="2">▌</div>
+        <div class="vol-seg" data-lvl="3">█</div>
+      </div>
+    </div>
+    <div class="hint">
+      <kbd>↑↓←→</kbd> 或 <kbd>WASD</kbd> 控制方向 · <kbd>Space</kbd> 暂停
+    </div>
+  </div>
+
+  <!-- Death overlay — revive or quit -->
+  <div class="overlay hidden" id="overlayDeath">
+    <div class="overlay-box">
+      <h2>💀 你撞到了<span id="deathReason">墙壁</span></h2>
+      <div class="death-stats">
+        <span class="stat-label">当前得分</span><span class="stat-value" id="deathScore">0</span>
+        <span class="stat-label">剩余生命</span><span class="stat-value" id="deathLives">0</span>
+        <span class="stat-label">已复活次数</span><span class="stat-value" id="deathRevives">0</span>
+        <span class="stat-label">蛇身长度</span><span class="stat-value" id="deathLength">3</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-revive" id="btnRevive">🔄 复活继续</button>
+        <button class="btn btn-end" id="btnEnd">✖ 结束游戏</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Final game over -->
+  <div class="overlay hidden" id="overlayFinal">
+    <div class="overlay-box">
+      <h2>游戏结束</h2>
+      <div class="death-stats">
+        <span class="stat-label">最终得分</span><span class="stat-value" id="finalScore">0</span>
+        <span class="stat-label">累计复活</span><span class="stat-value" id="finalRevives">0</span>
+        <span class="stat-label">最高纪录</span><span class="stat-value" id="finalHighScore">0</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-settings" onclick="goHome()">🏠 返回首页</button>
+        <button class="btn btn-start" onclick="hardRestart()">🔄 再来一局</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm restart overlay -->
+  <div class="overlay hidden" id="overlayConfirmRestart">
+    <div class="overlay-box">
+      <h2>⚠ 确定重新开始？</h2>
+      <div class="sub">当前得分 <b style="color:#ffd700" id="confirmScore">0</b> 将会丢失</div>
+      <div class="btn-row">
+        <button class="btn btn-end" onclick="cancelRestart()">✖ 取消</button>
+        <button class="btn btn-start" onclick="confirmRestart()">✓ 确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pause overlay -->
+  <div class="overlay hidden" id="overlayPause">
+    <div class="overlay-box">
+      <h2>⏸ 已暂停</h2>
+      <div class="sub">按 <kbd>Space</kbd> 或点击继续</div>
+      <button class="btn btn-start" onclick="togglePause()">▶ 继续</button>
+    </div>
+  </div>
+
+  <!-- Welcome / start screen -->
+  <div class="overlay" id="overlayWelcome">
+    <div class="overlay-box">
+      <h2>🐍 贪吃蛇</h2>
+      <div class="sub" style="margin-bottom:4px">经典街机游戏</div>
+      <div class="death-stats">
+        <span class="stat-label">最高纪录</span><span class="stat-value" id="welcomeHighScore">0</span>
+        <span class="stat-label">当前皮肤</span><span class="stat-value" id="welcomeSkinName">经典绿</span>
+      </div>
+      <div class="sub" style="margin-top:12px;margin-bottom:8px">
+        <kbd>↑↓←→</kbd> <kbd>WASD</kbd> 控制方向 &nbsp; <kbd>Space</kbd> 暂停
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-settings" onclick="openSettings()">⚙ 皮肤</button>
+        <button class="btn btn-settings" onclick="openRules()">📖 规则</button>
+        <button class="btn btn-start" id="btnWelcomeStart">▶ 开始游戏</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules overlay -->
+  <div class="overlay hidden" id="overlayRules">
+    <div class="overlay-box" style="max-width:400px;text-align:left">
+      <h2 style="text-align:center">📖 游戏规则</h2>
+      <div style="font-size:13px;line-height:1.75;color:#ccc;max-height:340px;overflow-y:auto;padding-right:4px">
+        <p>🎯 <b>目标：</b>控制蛇吃掉食物，尽可能获得高分。</p>
+        <p style="margin-bottom:6px;border-bottom:1px solid #1a3a5c;padding-bottom:6px">━━ <b>食物类型</b> ━━</p>
+        <p>🟢 <b>绿色食物</b>　+10 分，每 50 分游戏加速一次。</p>
+        <p>⭐ <b>金色星形</b>　+30 分，随机出现，限时存在。</p>
+        <p>❤️ <b>粉色爱心</b>　160 分首次出现，之后每 200 分生成。吃到 +1 条命，死亡自动复活并<b>保留长度</b>。</p>
+        <p>❄️ <b>蓝色减速豆</b>　350 分首次出现，之后每 150 分生成。吃到<b>减速 4 秒</b>，不加分。</p>
+        <p style="margin-bottom:6px;border-bottom:1px solid #1a3a5c;padding-bottom:6px">━━ <b>操作机制</b> ━━</p>
+        <p>⚡ <b>长按加速</b>　按住方向键不放即可加速，松开恢复。400 分后加速关闭。</p>
+        <p>💀 <b>死亡复活</b>　撞墙或撞自己即死亡。有剩余生命自动复活；无生命时弹出选项，可手动复活或结束。手动复活<b>保留长度</b>。</p>
+        <p>⏸ <b>暂停</b>　Space 键或点击暂停按钮，暂停时按钮保持可见可操作。</p>
+        <p style="margin-bottom:6px;border-bottom:1px solid #1a3a5c;padding-bottom:6px">━━ <b>其他</b> ━━</p>
+        <p>🎨 <b>6 种皮肤</b>　设置中可切换蛇的配色。</p>
+        <p>🎵 <b>BGM + 音效</b>　4 档音量可调，点击 🔊 按钮展开音量条。音效不受音量影响。</p>
+        <p>🔄 <b>重新开始</b>　游戏中点击会二次确认，防止误触。</p>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-start" onclick="closeRules()">✓ 知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings overlay -->
+  <div class="overlay hidden" id="overlaySettings">
+    <div class="overlay-box">
+      <h2>⚙ 设置</h2>
+
+      <div class="settings-section">
+        <div class="section-title">🐍 蛇的皮肤</div>
+        <div class="skin-grid" id="skinGrid"></div>
+      </div>
+
+      <div class="btn-row" style="margin-top:20px">
+        <button class="btn btn-start" onclick="closeSettings()">✓ 确定</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // ---- constants ----
+    const CELL = 24;
+    const COLS = 25;
+    const ROWS = 25;
+    const W = COLS * CELL;
+    const H = ROWS * CELL;
+    canvas.width = W;
+    canvas.height = H;
+
+    // ---- skins ----
+    const SKINS = [
+      {
+        id: 'classic',
+        name: '经典绿',
+        head: '#5eff5e',
+        body: (i, len) => { const g = Math.floor(94 - Math.min(i/(len+10),1)*50); return `rgb(30,${g},30)`; },
+        glow: '#5eff5e',
+      },
+      {
+        id: 'neon',
+        name: '霓虹蓝',
+        head: '#00d4ff',
+        body: (i, len) => { const b = Math.floor(180 - Math.min(i/(len+10),1)*70); return `rgb(20,80,${b})`; },
+        glow: '#00d4ff',
+      },
+      {
+        id: 'fire',
+        name: '烈焰红',
+        head: '#ff6b35',
+        body: (i, len) => { const r = Math.floor(200 - Math.min(i/(len+10),1)*60); return `rgb(${r},40,20)`; },
+        glow: '#ff6b35',
+      },
+      {
+        id: 'purple',
+        name: '暗夜紫',
+        head: '#c084fc',
+        body: (i, len) => { const b = Math.floor(180 - Math.min(i/(len+10),1)*60); return `rgb(80,20,${b})`; },
+        glow: '#c084fc',
+      },
+      {
+        id: 'gold',
+        name: '土豪金',
+        head: '#ffd700',
+        body: (i, len) => { const g = Math.floor(180 - Math.min(i/(len+10),1)*80); return `rgb(${g},${Math.floor(g*0.7)},20)`; },
+        glow: '#ffd700',
+      },
+      {
+        id: 'ice',
+        name: '冰霜白',
+        head: '#a5f3fc',
+        body: (i, len) => { const v = Math.floor(180 - Math.min(i/(len+10),1)*50); return `rgb(${v},${Math.floor(v*1.1)},${Math.floor(v*1.2)})`; },
+        glow: '#a5f3fc',
+      },
+    ];
+    let currentSkin = SKINS[0];
+    try { const saved = localStorage.getItem('snake_skin'); if (saved) { const s = SKINS.find(k => k.id === saved); if (s) currentSkin = s; } } catch(e) {}
+
+    // ---- DOM ----
+    const scoreEl = document.getElementById('score');
+    const highScoreEl = document.getElementById('highScore');
+    const highScoreNoteEl = document.getElementById('highScoreNote');
+    const livesCountEl = document.getElementById('livesCount');
+    const reviveCountEl = document.getElementById('reviveCount');
+    const revivePanel = document.getElementById('revivePanel');
+    const overlayDeath = document.getElementById('overlayDeath');
+    const overlayFinal = document.getElementById('overlayFinal');
+    const overlayPause = document.getElementById('overlayPause');
+    const overlaySettings = document.getElementById('overlaySettings');
+    const overlayConfirmRestart = document.getElementById('overlayConfirmRestart');
+    const confirmScoreEl = document.getElementById('confirmScore');
+    const overlayRules = document.getElementById('overlayRules');
+    const deathReasonEl = document.getElementById('deathReason');
+    const deathScoreEl = document.getElementById('deathScore');
+    const deathRevivesEl = document.getElementById('deathRevives');
+    const deathLivesEl = document.getElementById('deathLives');
+    const deathLengthEl = document.getElementById('deathLength');
+    const overlayWelcome = document.getElementById('overlayWelcome');
+    const welcomeHighScoreEl = document.getElementById('welcomeHighScore');
+    const welcomeSkinNameEl = document.getElementById('welcomeSkinName');
+    const finalScoreEl = document.getElementById('finalScore');
+    const finalRevivesEl = document.getElementById('finalRevives');
+    const finalHighScoreEl = document.getElementById('finalHighScore');
+
+    // ---- state ----
+    let snake = [];
+    let food = null;
+    let specialFood = null;
+    let specialFoodTimer = 0;
+    let heartFood = null;
+    let dir = { x: 1, y: 0 };
+    let nextDir = { x: 1, y: 0 };
+    let score = 0;
+    let highScore = 0;
+    let highScoreRevives = 0;
+    let revives = 0;
+    let lives = 0;
+    let nextHeartScore = 160;
+    let slowBean = null;
+    let nextSlowBeanScore = 350;
+    let slowEndTime = 0;
+    let boostActive = false;
+    let running = false;
+    let paused = false;
+    let gameOver = false;
+    let speed = 120;
+    let ticker = null;
+    let particles = [];
+    let flashAlpha = 0; // revive / heart flash
+    let slowFlashAlpha = 0; // slow bean flash
+
+    // ---- audio system ----
+    let audioCtx = null;
+    let bgmVolume = 1; // 0=mute, 1=low, 2=med, 3=high
+    let bgmTimer = null;
+    let bgmNoteIndex = 0;
+    try { const saved = localStorage.getItem('snake_bgm_vol'); if (saved) bgmVolume = parseInt(saved); } catch(e) {}
+
+    const VOL_ICONS = ['🔇', '🔈', '🔉', '🔊'];
+    const VOL_MULT = [0, 0.4, 0.7, 1.0];
+    const VOL_COLORS = ['#555', '#4ecca3', '#4ecca3', '#4ecca3'];
+    const btnBgm = document.getElementById('btnBgm');
+    const volBar = document.getElementById('volBar');
+    const volSegs = volBar.querySelectorAll('.vol-seg');
+    btnBgm.innerHTML = VOL_ICONS[bgmVolume];
+    updateVolBar();
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+
+    function playNote(freq, duration, type, vol, delay, isSfx) {
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type || 'square';
+        osc.frequency.value = freq;
+        const v = (vol || 0.06) * (isSfx ? 1 : VOL_MULT[bgmVolume]);
+        if (v <= 0) return;
+        gain.gain.setValueAtTime(v, ctx.currentTime + (delay || 0));
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (delay || 0) + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + (delay || 0));
+        osc.stop(ctx.currentTime + (delay || 0) + duration + 0.05);
+      } catch(e) {}
+    }
+
+    function sfxEat() { playNote(880, 0.08, 'square', 0.07, 0, true); playNote(1100, 0.06, 'square', 0.05, 0.06, true); }
+    function sfxSpecial() { playNote(660, 0.06, 'square', 0.06, 0, true); playNote(880, 0.06, 'square', 0.06, 0.05, true); playNote(1100, 0.08, 'square', 0.06, 0.10, true); }
+    function sfxHeart() { playNote(523, 0.1, 'triangle', 0.08, 0, true); playNote(659, 0.1, 'triangle', 0.08, 0.08, true); playNote(784, 0.15, 'triangle', 0.10, 0.16, true); }
+    function sfxSlow() { playNote(200, 0.2, 'sine', 0.08, 0, true); playNote(150, 0.25, 'sine', 0.06, 0.15, true); }
+    function sfxDie() { playNote(200, 0.2, 'sawtooth', 0.10, 0, true); playNote(150, 0.2, 'sawtooth', 0.08, 0.1, true); playNote(100, 0.3, 'sawtooth', 0.06, 0.2, true); }
+    function sfxRevive() { playNote(440, 0.08, 'triangle', 0.06, 0, true); playNote(554, 0.08, 'triangle', 0.06, 0.06, true); playNote(660, 0.12, 'triangle', 0.08, 0.12, true); }
+
+    // BGM: C大调 4/4拍 120BPM — 前奏→A→B→A→B→尾句→循环
+    // 1=C5=523 2=D5=587 3=E5=659 4=F5=698 5=G5=784 6=A5=880  -=rest
+    // 每字符=1拍(500ms=2 eighth slots), 每小节4字符, 1 slot=250ms
+    const SCALE = { '1':523,'2':587,'3':659,'4':698,'5':784,'6':880,'-':0 };
+    function parseBgm(bars) {
+      const seq = [];
+      for (const bar of bars) {
+        for (const ch of bar) {
+          seq.push({ f: SCALE[ch] || 0, s: 2 }); // each beat = 2 eighth slots
+        }
+      }
+      return seq;
+    }
+    const INTRO   = ['1355','6531','2466','5421','1355','6531','2123','1---'];
+    const MAIN_A  = ['1355','6531','2466','5421','1355','6531','2123','1---'];
+    const MAIN_B  = ['5-6-','531-','2-3-','246-','5-6-','531-','2123','1---'];
+    const OUTRO   = ['1355','6531','2123','1---'];
+    const BGM_SEQ = parseBgm([...INTRO, ...MAIN_A, ...MAIN_B, ...MAIN_A, ...MAIN_B, ...OUTRO]);
+    const SLOT_MS = 250; // eighth note at 120BPM
+
+    function scheduleBgmNote() {
+      if (bgmVolume === 0 || paused || !running) {
+        bgmTimer = setTimeout(scheduleBgmNote, 200);
+        return;
+      }
+      const n = BGM_SEQ[bgmNoteIndex % BGM_SEQ.length];
+      if (n.f > 0) {
+        const dur = n.s * SLOT_MS * 0.85 / 1000; // slight staccato gap
+        playNote(n.f, dur, 'triangle', 0.05, 0);
+      }
+      bgmNoteIndex++;
+      bgmTimer = setTimeout(scheduleBgmNote, n.s * SLOT_MS);
+    }
+
+    function startBgm() {
+      if (bgmVolume === 0) return;
+      stopBgm();
+      bgmNoteIndex = 0;
+      scheduleBgmNote();
+    }
+
+    function stopBgm() {
+      if (bgmTimer) { clearTimeout(bgmTimer); bgmTimer = null; }
+    }
+
+    function updateVolBar() {
+      volSegs.forEach(seg => {
+        const lvl = parseInt(seg.dataset.lvl);
+        seg.classList.toggle('active', lvl === bgmVolume);
+        if (lvl <= bgmVolume && bgmVolume > 0) {
+          seg.style.background = VOL_COLORS[bgmVolume];
+        } else if (lvl === 0 && bgmVolume === 0) {
+          seg.style.background = '#555';
+        } else {
+          seg.style.background = '#1a3a5c';
+        }
+      });
+    }
+
+    function setBgmVolume(lvl) {
+      bgmVolume = lvl;
+      btnBgm.innerHTML = VOL_ICONS[bgmVolume];
+      updateVolBar();
+      try { localStorage.setItem('snake_bgm_vol', bgmVolume); } catch(e) {}
+      if (bgmVolume > 0 && running && !gameOver && !paused) {
+        startBgm();
+      } else if (bgmVolume === 0) {
+        stopBgm();
+      }
+    }
+
+    btnBgm.addEventListener('click', () => {
+      volBar.classList.toggle('hidden');
+    });
+
+    volSegs.forEach(seg => {
+      seg.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setBgmVolume(parseInt(seg.dataset.lvl));
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!volBar.contains(e.target) && e.target !== btnBgm) {
+        volBar.classList.add('hidden');
+      }
+    });
+
+    // ---- init ----
+    try {
+      const saved = JSON.parse(localStorage.getItem('snake_highscore') || 'null');
+      if (saved && typeof saved.score === 'number') {
+        highScore = saved.score;
+        highScoreRevives = saved.revives || 0;
+      }
+    } catch(e) {}
+    function updateHighScoreDisplay() {
+      highScoreEl.textContent = highScore;
+      highScoreNoteEl.textContent = highScoreRevives > 0 ? '复活' + highScoreRevives + '次' : '';
+    }
+    updateHighScoreDisplay();
+
+    function initGame(fullReset = true) {
+      const cx = Math.floor(COLS / 2);
+      const cy = Math.floor(ROWS / 2);
+      snake = [
+        { x: cx, y: cy },
+        { x: cx - 1, y: cy },
+        { x: cx - 2, y: cy },
+      ];
+      dir = { x: 1, y: 0 };
+      nextDir = { x: 1, y: 0 };
+      if (fullReset) {
+        score = 0;
+        revives = 0;
+        lives = 0;
+        speed = 120;
+        nextHeartScore = 160;
+        nextSlowBeanScore = 350;
+      }
+      heartFood = null;
+      slowBean = null;
+      slowEndTime = 0;
+      boostActive = false;
+      flashAlpha = 0;
+      slowFlashAlpha = 0;
+      gameOver = false;
+      paused = false;
+      particles = [];
+      specialFood = null;
+      specialFoodTimer = 0;
+      scoreEl.textContent = score;
+      livesCountEl.innerHTML = '❤ ' + lives;
+      reviveCountEl.textContent = revives;
+      revivePanel.style.display = (revives > 0) ? '' : 'none';
+      overlayDeath.classList.add('hidden');
+      overlayFinal.classList.add('hidden');
+      overlayPause.classList.add('hidden');
+      overlaySettings.classList.add('hidden');
+      overlayConfirmRestart.classList.add('hidden');
+      document.getElementById('btnPause').innerHTML = '⏸ 暂停';
+      spawnFood();
+      if (ticker) clearInterval(ticker);
+      ticker = setInterval(tick, speed);
+      running = true;
+    }
+
+    function spawnFood() {
+      const occupied = new Set(snake.map(p => `${p.x},${p.y}`));
+      if (heartFood) occupied.add(`${heartFood.x},${heartFood.y}`);
+      if (slowBean) occupied.add(`${slowBean.x},${slowBean.y}`);
+      const free = [];
+      for (let x = 0; x < COLS; x++) {
+        for (let y = 0; y < ROWS; y++) {
+          if (!occupied.has(`${x},${y}`)) free.push({ x, y });
+        }
+      }
+      if (free.length === 0) return;
+      food = free[Math.floor(Math.random() * free.length)];
+    }
+
+    function spawnSpecialFood() {
+      if (specialFood) return;
+      const occupied = new Set(snake.map(p => `${p.x},${p.y}`));
+      if (food) occupied.add(`${food.x},${food.y}`);
+      if (heartFood) occupied.add(`${heartFood.x},${heartFood.y}`);
+      if (slowBean) occupied.add(`${slowBean.x},${slowBean.y}`);
+      const free = [];
+      for (let x = 0; x < COLS; x++) {
+        for (let y = 0; y < ROWS; y++) {
+          if (!occupied.has(`${x},${y}`)) free.push({ x, y });
+        }
+      }
+      if (free.length === 0) return;
+      specialFood = free[Math.floor(Math.random() * free.length)];
+      specialFoodTimer = 80;
+    }
+
+    function spawnHeartFood() {
+      if (heartFood) return;
+      const occupied = new Set(snake.map(p => `${p.x},${p.y}`));
+      if (food) occupied.add(`${food.x},${food.y}`);
+      if (specialFood) occupied.add(`${specialFood.x},${specialFood.y}`);
+      if (slowBean) occupied.add(`${slowBean.x},${slowBean.y}`);
+      const free = [];
+      for (let x = 0; x < COLS; x++) {
+        for (let y = 0; y < ROWS; y++) {
+          if (!occupied.has(`${x},${y}`)) free.push({ x, y });
+        }
+      }
+      if (free.length === 0) return;
+      heartFood = free[Math.floor(Math.random() * free.length)];
+    }
+
+    function spawnSlowBean() {
+      if (slowBean) return;
+      const occupied = new Set(snake.map(p => `${p.x},${p.y}`));
+      if (food) occupied.add(`${food.x},${food.y}`);
+      if (specialFood) occupied.add(`${specialFood.x},${specialFood.y}`);
+      if (heartFood) occupied.add(`${heartFood.x},${heartFood.y}`);
+      const free = [];
+      for (let x = 0; x < COLS; x++) {
+        for (let y = 0; y < ROWS; y++) {
+          if (!occupied.has(`${x},${y}`)) free.push({ x, y });
+        }
+      }
+      if (free.length === 0) return;
+      slowBean = free[Math.floor(Math.random() * free.length)];
+    }
+
+    function spawnSlowParticles(x, y) {
+      for (let i = 0; i < 10; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const spd = 1 + Math.random() * 3;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * spd,
+          vy: Math.sin(angle) * spd,
+          life: 15 + Math.random() * 12,
+          color: '#60a5fa',
+          size: 2 + Math.random() * 3,
+        });
+      }
+    }
+
+    function spawnHeartParticles(x, y) {
+      for (let i = 0; i < 14; i++) {
+        const angle = (Math.PI * 2 / 14) * i;
+        const speed = 2 + Math.random() * 3;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 20 + Math.random() * 10,
+          color: i % 2 === 0 ? '#ff6b8a' : '#ffb3c6',
+          size: 3 + Math.random() * 3,
+        });
+      }
+    }
+
+    function tick() {
+      if (!running || paused || gameOver) return;
+
+      // check slow expiry
+      if (slowEndTime > 0 && Date.now() >= slowEndTime) {
+        slowEndTime = 0;
+        clearInterval(ticker);
+        ticker = setInterval(tick, boostActive ? Math.max(30, speed - 45) : speed);
+      }
+
+      dir = { ...nextDir };
+
+      const head = snake[0];
+      const nx = head.x + dir.x;
+      const ny = head.y + dir.y;
+
+      if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) {
+        die('墙壁');
+        return;
+      }
+
+      for (let i = 0; i < snake.length; i++) {
+        if (snake[i].x === nx && snake[i].y === ny) {
+          die('自己');
+          return;
+        }
+      }
+
+      const newHead = { x: nx, y: ny };
+      snake.unshift(newHead);
+
+      if (food && newHead.x === food.x && newHead.y === food.y) {
+        score += 10;
+        sfxEat();
+        spawnFood();
+        spawnParticles(newHead.x * CELL + CELL/2, newHead.y * CELL + CELL/2, '#4ecca3');
+
+        if (score % 50 === 0 && speed > 50) {
+          speed -= 5;
+          clearInterval(ticker);
+          const interval = slowEndTime > Date.now() ? speed + 70 : (boostActive ? Math.max(30, speed - 45) : speed);
+          ticker = setInterval(tick, interval);
+        }
+
+        if (Math.random() < 0.3 && !specialFood) {
+          spawnSpecialFood();
+        }
+      } else if (specialFood && newHead.x === specialFood.x && newHead.y === specialFood.y) {
+        score += 30;
+        sfxSpecial();
+        spawnParticles(specialFood.x * CELL + CELL/2, specialFood.y * CELL + CELL/2, '#ffd700');
+        specialFood = null;
+        specialFoodTimer = 0;
+      } else {
+        snake.pop();
+      }
+
+      // check heart food
+      if (heartFood && newHead.x === heartFood.x && newHead.y === heartFood.y) {
+        lives++;
+        sfxHeart();
+        livesCountEl.innerHTML = '❤ ' + lives;
+        spawnHeartParticles(heartFood.x * CELL + CELL/2, heartFood.y * CELL + CELL/2);
+        flashAlpha = 1;
+        heartFood = null;
+      }
+
+      // check slow bean
+      if (slowBean && newHead.x === slowBean.x && newHead.y === slowBean.y) {
+        sfxSlow();
+        spawnSlowParticles(slowBean.x * CELL + CELL/2, slowBean.y * CELL + CELL/2);
+        slowFlashAlpha = 0.6;
+        slowEndTime = Date.now() + 4000;
+        clearInterval(ticker);
+        ticker = setInterval(tick, speed + 70);
+        slowBean = null;
+      }
+
+      // spawn heart at score milestones
+      if (!heartFood && score >= nextHeartScore) {
+        spawnHeartFood();
+        nextHeartScore += 200;
+      }
+
+      // spawn slow bean at milestones
+      if (!slowBean && score >= nextSlowBeanScore) {
+        spawnSlowBean();
+        nextSlowBeanScore += 150;
+      }
+
+      if (specialFood) {
+        specialFoodTimer--;
+        if (specialFoodTimer <= 0) {
+          spawnParticles(specialFood.x * CELL + CELL/2, specialFood.y * CELL + CELL/2, '#ff4444');
+          specialFood = null;
+        }
+      }
+
+      // fade flash effect
+      if (boostActive && score >= 400) deactivateBoost();
+      if (flashAlpha > 0) flashAlpha = Math.max(0, flashAlpha - 0.05);
+      if (slowFlashAlpha > 0) slowFlashAlpha = Math.max(0, slowFlashAlpha - 0.03);
+
+      scoreEl.textContent = score;
+    }
+
+    function die(reason) {
+      sfxDie();
+      // death particles
+      const head = snake[0];
+      for (let i = 0; i < 20; i++) {
+        particles.push({
+          x: head.x * CELL + CELL/2,
+          y: head.y * CELL + CELL/2,
+          vx: (Math.random() - 0.5) * 8,
+          vy: (Math.random() - 0.5) * 8,
+          life: 30 + Math.random() * 20,
+          color: '#ff4444',
+        });
+      }
+
+      // auto-revive if has lives
+      if (lives > 0) {
+        lives--;
+        livesCountEl.innerHTML = '❤ ' + lives;
+        flashAlpha = 0.8;
+        // reposition snake at center, preserve current length
+        const cx = Math.floor(COLS / 2);
+        const cy = Math.floor(ROWS / 2);
+        const len = snake.length;
+        snake = [];
+        for (let i = 0; i < len; i++) {
+          snake.push({ x: cx - i, y: cy });
+        }
+        dir = { x: 1, y: 0 };
+        nextDir = { x: 1, y: 0 };
+        specialFood = null;
+        specialFoodTimer = 0;
+        // restart ticker
+        if (ticker) clearInterval(ticker);
+        ticker = setInterval(tick, speed);
+        running = true;
+        gameOver = false;
+        return;
+      }
+
+      // no lives left — show death overlay
+      stopBgm();
+      gameOver = true;
+      running = false;
+      clearInterval(ticker);
+      ticker = null;
+
+      deathReasonEl.textContent = reason;
+      deathScoreEl.textContent = score;
+      deathLivesEl.textContent = lives;
+      deathRevivesEl.textContent = revives;
+      deathLengthEl.textContent = snake.length;
+
+      overlayDeath.classList.remove('hidden');
+    }
+
+    function revive() {
+      sfxRevive();
+      revives++;
+      reviveCountEl.textContent = revives;
+      revivePanel.style.display = '';
+      gameOver = false;
+      paused = false;
+      startBgm();
+      overlayDeath.classList.add('hidden');
+      // reposition snake at center, preserve current length
+      const cx = Math.floor(COLS / 2);
+      const cy = Math.floor(ROWS / 2);
+      const len = snake.length;
+      snake = [];
+      for (let i = 0; i < len; i++) {
+        snake.push({ x: cx - i, y: cy });
+      }
+      dir = { x: 1, y: 0 };
+      nextDir = { x: 1, y: 0 };
+      specialFood = null;
+      specialFoodTimer = 0;
+      scoreEl.textContent = score;
+      ticker = setInterval(tick, speed);
+      running = true;
+    }
+
+    function endGame() {
+      stopBgm();
+      overlayDeath.classList.add('hidden');
+
+      if (score > highScore) {
+        highScore = score;
+        highScoreRevives = revives;
+        updateHighScoreDisplay();
+        try { localStorage.setItem('snake_highscore', JSON.stringify({ score: highScore, revives: highScoreRevives })); } catch(e) {}
+      }
+
+      finalScoreEl.textContent = score;
+      finalRevivesEl.textContent = revives;
+      finalHighScoreEl.textContent = highScore + (highScoreRevives > 0 ? ' (复活' + highScoreRevives + '次)' : '');
+      overlayFinal.classList.remove('hidden');
+    }
+
+    function spawnParticles(x, y, color) {
+      for (let i = 0; i < 8; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 6,
+          vy: (Math.random() - 0.5) * 6,
+          life: 15 + Math.random() * 10,
+          color,
+        });
+      }
+    }
+
+    // ---- rendering ----
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      // grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+      ctx.lineWidth = 0.5;
+      for (let x = 0; x <= COLS; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * CELL, 0);
+        ctx.lineTo(x * CELL, H);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= ROWS; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * CELL);
+        ctx.lineTo(W, y * CELL);
+        ctx.stroke();
+      }
+
+      // food
+      if (food) {
+        const fx = food.x * CELL + CELL/2;
+        const fy = food.y * CELL + CELL/2;
+        const pulse = 1 + Math.sin(Date.now() / 200) * 0.15;
+        ctx.save();
+        ctx.shadowColor = '#4ecca3';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = '#4ecca3';
+        ctx.beginPath();
+        ctx.arc(fx, fy, CELL/2.5 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // special food
+      if (specialFood) {
+        const sx = specialFood.x * CELL + CELL/2;
+        const sy = specialFood.y * CELL + CELL/2;
+        const blink = specialFoodTimer < 15 ? 0.4 + Math.sin(Date.now() / 80) * 0.2 : 1;
+        ctx.save();
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 14;
+        ctx.fillStyle = `rgba(255,215,0,${blink})`;
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        drawStar(ctx, sx, sy, CELL/3, CELL/6, 5);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // slow bean
+      if (slowBean) {
+        const bx = slowBean.x * CELL + CELL/2;
+        const by = slowBean.y * CELL + CELL/2;
+        ctx.save();
+        ctx.shadowColor = '#60a5fa';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(bx, by, CELL/3, 0, Math.PI * 2);
+        ctx.fill();
+        // snowflake icon
+        ctx.fillStyle = '#bfdbfe';
+        ctx.font = `${CELL/2}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('❄', bx, by);
+        ctx.restore();
+      }
+
+      // heart food
+      if (heartFood) {
+        const hx = heartFood.x * CELL + CELL/2;
+        const hy = heartFood.y * CELL + CELL/2;
+        const beat = 1 + Math.sin(Date.now() / 300) * 0.12;
+        ctx.save();
+        ctx.shadowColor = '#ff6b8a';
+        ctx.shadowBlur = 16;
+        drawHeart(ctx, hx, hy, CELL/2.5 * beat);
+        ctx.restore();
+      }
+
+      // revive / heart flash
+      if (flashAlpha > 0) {
+        ctx.fillStyle = `rgba(255,107,138,${flashAlpha * 0.25})`;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      // slow bean flash
+      if (slowFlashAlpha > 0) {
+        ctx.fillStyle = `rgba(96,165,250,${slowFlashAlpha * 0.2})`;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      // snake
+      const skin = currentSkin;
+      snake.forEach((seg, i) => {
+        const sx = seg.x * CELL;
+        const sy = seg.y * CELL;
+        const pad = 1.5;
+
+        if (i === 0) {
+          ctx.fillStyle = skin.head;
+          ctx.shadowColor = skin.glow;
+          ctx.shadowBlur = 8;
+          roundRect(sx + pad, sy + pad, CELL - pad*2, CELL - pad*2, 7);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          // eyes
+          const ex = sx + CELL/2;
+          const ey = sy + CELL/2;
+          ctx.fillStyle = '#0a0a1a';
+          let offX = 0, offY = 0;
+          if (dir.x === 1) { offX = 4; offY = 0; }
+          else if (dir.x === -1) { offX = -4; offY = 0; }
+          else if (dir.y === 1) { offX = 0; offY = 4; }
+          else if (dir.y === -1) { offX = 0; offY = -4; }
+          ctx.beginPath();
+          ctx.arc(ex + offX - 4, ey + offY - 4, 3, 0, Math.PI*2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(ex + offX - 4, ey + offY + 4, 3, 0, Math.PI*2);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = skin.body(i, snake.length);
+          roundRect(sx + pad, sy + pad, CELL - pad*2, CELL - pad*2, 5);
+          ctx.fill();
+        }
+      });
+
+      // particles
+      particles = particles.filter(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        if (p.life <= 0) return false;
+        ctx.globalAlpha = p.life / 50;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size || 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        return true;
+      });
+
+      // pause overlay on canvas
+      if (paused) {
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 36px "PingFang SC","Microsoft YaHei",sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('⏸ 已暂停', W/2, H/2);
+        ctx.textAlign = 'start';
+      }
+
+      // death overlay on canvas
+      if (gameOver) {
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    function roundRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    function drawStar(ctx, cx, cy, outerR, innerR, points) {
+      const step = Math.PI / points;
+      ctx.beginPath();
+      for (let i = 0; i < points * 2; i++) {
+        const r = i % 2 === 0 ? outerR : innerR;
+        const angle = -Math.PI / 2 + i * step;
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+    }
+
+    function drawHeart(ctx, cx, cy, size) {
+      const s = size / 16;
+      ctx.fillStyle = '#ff6b8a';
+      ctx.strokeStyle = '#ffb3c6';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      const topY = cy - s * 6;
+      const bottomY = cy + s * 8;
+      ctx.moveTo(cx, bottomY);
+      ctx.bezierCurveTo(cx - s * 16, cy + s * 2, cx - s * 9, topY, cx, cy + s * 2);
+      ctx.bezierCurveTo(cx + s * 9, topY, cx + s * 16, cy + s * 2, cx, bottomY);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // ---- settings ----
+    function buildSkinGrid() {
+      const grid = document.getElementById('skinGrid');
+      grid.innerHTML = '';
+      SKINS.forEach(skin => {
+        const div = document.createElement('div');
+        div.className = 'skin-option' + (skin.id === currentSkin.id ? ' active' : '');
+        // preview
+        const preview = document.createElement('div');
+        preview.className = 'skin-preview';
+        const headDot = document.createElement('span');
+        headDot.style.background = skin.head;
+        preview.appendChild(headDot);
+        for (let k = 0; k < 3; k++) {
+          const dot = document.createElement('span');
+          dot.style.background = skin.body(k * 3, 12);
+          preview.appendChild(dot);
+        }
+        div.appendChild(preview);
+        div.appendChild(document.createTextNode(skin.name));
+        div.addEventListener('click', () => {
+          currentSkin = skin;
+          try { localStorage.setItem('snake_skin', skin.id); } catch(e) {}
+          buildSkinGrid();
+        });
+        grid.appendChild(div);
+      });
+    }
+
+    function openSettings() {
+      if (running && !paused && !gameOver) togglePause();
+      buildSkinGrid();
+      overlaySettings.classList.remove('hidden');
+    }
+
+    function closeSettings() {
+      overlaySettings.classList.add('hidden');
+      welcomeHighScoreEl.textContent = highScore + (highScoreRevives > 0 ? ' (复活' + highScoreRevives + '次)' : '');
+      welcomeSkinNameEl.textContent = currentSkin.name;
+    }
+
+    function openRules() {
+      overlayRules.classList.remove('hidden');
+    }
+
+    function closeRules() {
+      overlayRules.classList.add('hidden');
+    }
+
+    function goHome() {
+      stopBgm();
+      clearInterval(ticker);
+      ticker = null;
+      running = false;
+      gameOver = false;
+      paused = false;
+      overlayFinal.classList.add('hidden');
+      overlayDeath.classList.add('hidden');
+      // show welcome
+      welcomeHighScoreEl.textContent = highScore + (highScoreRevives > 0 ? ' (复活' + highScoreRevives + '次)' : '');
+      welcomeSkinNameEl.textContent = currentSkin.name;
+      overlayWelcome.classList.remove('hidden');
+      // reset static preview
+      const cx = Math.floor(COLS / 2);
+      const cy = Math.floor(ROWS / 2);
+      snake = [{ x: cx, y: cy }, { x: cx - 1, y: cy }, { x: cx - 2, y: cy }];
+      food = null;
+      specialFood = null;
+      heartFood = null;
+      slowBean = null;
+      particles = [];
+      spawnFood();
+      score = 0;
+      revives = 0;
+      lives = 0;
+      speed = 120;
+      nextHeartScore = 160;
+      nextSlowBeanScore = 350;
+      scoreEl.textContent = score;
+      livesCountEl.innerHTML = '❤ 0';
+      reviveCountEl.textContent = '0';
+      revivePanel.style.display = 'none';
+    }
+
+    // ---- input ----
+    function isDirKey(key) {
+      return ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','W','a','A','s','S','d','D'].includes(key);
+    }
+
+    function activateBoost() {
+      if (score >= 400 || boostActive || paused || !running || gameOver) return;
+      boostActive = true;
+      clearInterval(ticker);
+      ticker = setInterval(tick, Math.max(30, speed - 45));
+    }
+
+    function deactivateBoost() {
+      if (!boostActive) return;
+      boostActive = false;
+      clearInterval(ticker);
+      const interval = slowEndTime > Date.now() ? speed + 70 : speed;
+      ticker = setInterval(tick, interval);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if (!overlaySettings.classList.contains('hidden')) { closeSettings(); return; }
+        if (!overlayRules.classList.contains('hidden')) { closeRules(); return; }
+        if (!overlayConfirmRestart.classList.contains('hidden')) { cancelRestart(); return; }
+      }
+
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        if (!overlayDeath.classList.contains('hidden') || !overlayFinal.classList.contains('hidden') || !overlaySettings.classList.contains('hidden') || !overlayRules.classList.contains('hidden') || !overlayConfirmRestart.classList.contains('hidden')) return;
+        if (gameOver) return;
+        togglePause();
+        return;
+      }
+      if (gameOver || paused || !running) return;
+      if (!overlayDeath.classList.contains('hidden') || !overlayFinal.classList.contains('hidden') || !overlaySettings.classList.contains('hidden') || !overlayRules.classList.contains('hidden') || !overlayConfirmRestart.classList.contains('hidden')) return;
+
+      switch (e.key) {
+        case 'ArrowUp':    case 'w': case 'W': if (dir.y === 0) nextDir = { x: 0, y: -1 }; e.preventDefault(); break;
+        case 'ArrowDown':  case 's': case 'S': if (dir.y === 0) nextDir = { x: 0, y: 1 };  e.preventDefault(); break;
+        case 'ArrowLeft':  case 'a': case 'A': if (dir.x === 0) nextDir = { x: -1, y: 0 }; e.preventDefault(); break;
+        case 'ArrowRight': case 'd': case 'D': if (dir.x === 0) nextDir = { x: 1, y: 0 };  e.preventDefault(); break;
+      }
+      // boost on long-press (repeat)
+      if (isDirKey(e.key) && e.repeat) {
+        activateBoost();
+      }
+    });
+
+    document.addEventListener('keyup', e => {
+      if (isDirKey(e.key)) {
+        deactivateBoost();
+      }
+    });
+
+    function togglePause() {
+      if (gameOver || !running) return;
+      paused = !paused;
+      const btn = document.getElementById('btnPause');
+      if (paused) {
+        btn.innerHTML = '▶ 继续';
+        stopBgm();
+      } else {
+        btn.innerHTML = '⏸ 暂停';
+        startBgm();
+      }
+    }
+
+    function hardRestart() {
+      clearInterval(ticker);
+      initGame(true);
+      startBgm();
+    }
+
+    function handleRestart() {
+      if (running && !gameOver && score > 0) {
+        // game in progress — pause first then confirm
+        if (!paused) togglePause();
+        confirmScoreEl.textContent = score;
+        overlayConfirmRestart.classList.remove('hidden');
+      } else {
+        hardRestart();
+        document.getElementById('btnPause').innerHTML = '⏸ 暂停';
+      }
+    }
+
+    function confirmRestart() {
+      overlayConfirmRestart.classList.add('hidden');
+      hardRestart();
+      document.getElementById('btnPause').innerHTML = '⏸ 暂停';
+    }
+
+    function cancelRestart() {
+      overlayConfirmRestart.classList.add('hidden');
+    }
+
+    function startFirstGame() {
+      overlayWelcome.classList.add('hidden');
+      initGame(true);
+      startBgm();
+    }
+
+    // ---- button events ----
+    document.getElementById('btnStart').addEventListener('click', handleRestart);
+    document.getElementById('btnWelcomeStart').addEventListener('click', startFirstGame);
+    document.getElementById('btnPause').addEventListener('click', togglePause);
+    document.getElementById('btnSettings').addEventListener('click', openSettings);
+    document.getElementById('btnRevive').addEventListener('click', revive);
+    document.getElementById('btnEnd').addEventListener('click', endGame);
+
+    // ---- startup: show welcome, render static preview ----
+    welcomeHighScoreEl.textContent = highScore + (highScoreRevives > 0 ? ' (复活' + highScoreRevives + '次)' : '');
+    welcomeSkinNameEl.textContent = currentSkin.name;
+    // init a static snake for visual preview behind the overlay
+    const cx = Math.floor(COLS / 2);
+    const cy = Math.floor(ROWS / 2);
+    snake = [
+      { x: cx, y: cy },
+      { x: cx - 1, y: cy },
+      { x: cx - 2, y: cy },
+    ];
+    spawnFood();
+    heartFood = null;
+    slowBean = null;
+    slowEndTime = 0;
+    lives = 0;
+    nextHeartScore = 160;
+    nextSlowBeanScore = 350;
+    running = false;
+    gameOver = false;
+    paused = false;
+    livesCountEl.innerHTML = '❤ 0';
+    requestAnimationFrame(draw);
+  </script>
+</body>
+</html>
