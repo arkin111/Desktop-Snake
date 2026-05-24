@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(explorer \"c:\\\\Users\\\\苏曼珲\\\\Desktop\\\\Work\\\\智能体项目\\\\Desktop Snake\\\\index.html\")",
-      "Bash(start \"\" \"c:\\\\Users\\\\苏曼珲\\\\Desktop\\\\Work\\\\智能体项目\\\\Desktop Snake\\\\index.html\")"
+      "Bash(start \"\" \"c:\\\\Users\\\\苏曼珲\\\\Desktop\\\\Work\\\\智能体项目\\\\Desktop Snake\\\\index.html\")",
+      "Bash(python -m http.server 8080)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/index.html)",
+      "Bash(start index.html)",
+      "Bash(python -m webbrowser \"file:///$\\(pwd\\)/index.html\")"
     ]
   }
 }
